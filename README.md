@@ -1,6 +1,6 @@
 # AI Kubernetes Agent
 
-On-demand Kubernetes troubleshooting powered by AI. Select a cluster, click investigate, and get a root-cause diagnosis with actionable fix commands — in seconds.
+On-demand Kubernetes troubleshooting powered by AI. Select a cluster, click investigate, and get a root-cause diagnosis with actionable fix commands in seconds.
 
 ![AI Kubernetes Agent](docs/AI-K8s-Agent.png)
 
