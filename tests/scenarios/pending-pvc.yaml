@@ -1,0 +1,48 @@
+# Scenario: Pod stuck in Pending — PVC does not exist
+# The pod requests a PersistentVolumeClaim that was never created.
+# Kubernetes cannot schedule the pod and it stays in Pending forever.
+#
+# Apply:   kubectl apply -f tests/scenarios/pending-pvc.yaml
+# Cleanup: kubectl delete -f tests/scenarios/pending-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: missing-storage-pvc
+  namespace: default
+  labels:
+    scenario: pending-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Ti                    # 1 TiB — no StorageClass can satisfy this in kind
+  storageClassName: does-not-exist    # StorageClass that doesn't exist
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pending-pvc-demo
+  namespace: default
+  labels:
+    scenario: pending-pvc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pending-pvc-demo
+  template:
+    metadata:
+      labels:
+        app: pending-pvc-demo
+    spec:
+      containers:
+        - name: app
+          image: nginx:alpine
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: missing-storage-pvc   # Unbound PVC → pod stays Pending

@@ -1,0 +1,29 @@
+# Scenario: ImagePullBackOff
+# The deployment references a non-existent image tag.
+# Kubernetes will fail to pull it and report ImagePullBackOff / ErrImagePull.
+#
+# Apply:   kubectl apply -f tests/scenarios/image-pull-backoff.yaml
+# Cleanup: kubectl delete -f tests/scenarios/image-pull-backoff.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imagepull-demo
+  namespace: default
+  labels:
+    scenario: image-pull-backoff
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: imagepull-demo
+  template:
+    metadata:
+      labels:
+        app: imagepull-demo
+    spec:
+      containers:
+        - name: app
+          # This image tag does not exist — triggers ImagePullBackOff
+          image: nginx:this-tag-does-not-exist-99999
+          ports:
+            - containerPort: 80

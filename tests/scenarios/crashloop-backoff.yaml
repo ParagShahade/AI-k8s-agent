@@ -1,0 +1,38 @@
+# Scenario: CrashLoopBackOff
+# The container starts, immediately exits with code 1 because DATABASE_URL is missing,
+# then Kubernetes keeps restarting it — triggering CrashLoopBackOff.
+#
+# Apply:   kubectl apply -f tests/scenarios/crashloop-backoff.yaml
+# Cleanup: kubectl delete -f tests/scenarios/crashloop-backoff.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crashloop-demo
+  namespace: default
+  labels:
+    scenario: crashloop-backoff
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crashloop-demo
+  template:
+    metadata:
+      labels:
+        app: crashloop-demo
+    spec:
+      containers:
+        - name: app
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Starting application..."
+              if [ -z "$DATABASE_URL" ]; then
+                echo "FATAL: DATABASE_URL environment variable is not set"
+                echo "Application cannot start without a database connection"
+                exit 1
+              fi
+              echo "Connected to database. App running."
+              sleep 3600
+          # DATABASE_URL is intentionally omitted to trigger the crash
